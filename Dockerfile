@@ -1,4 +1,4 @@
-FROM erlang:21.0.5-alpine as builder
+FROM erlang:21.0.9-alpine as builder
 
 RUN apk add --no-cache --update tar curl git bash make libc-dev gcc g++ vim
 
@@ -11,8 +11,13 @@ RUN set -xe \
 ENV PATH "$PATH:/root/.cache/rebar3/bin"
 
 WORKDIR /usr/src/app
-COPY . /usr/src/app
 
+# build and cache dependencies
+COPY rebar.config rebar.lock /usr/src/app/
+RUN rebar3 compile
+
+# copy in the vonnegut source and build release
+COPY . /usr/src/app
 RUN rebar3 as prod tar
 
 RUN mkdir -p /opt/rel
